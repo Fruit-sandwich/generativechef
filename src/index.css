@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-serif: 'Newsreader', Georgia, serif;
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+
+    /* Base palette variables */
+    --color-coat: #ffcd00;
+    --color-apron1: #ffcd00;
+    --color-samosas-plate: #ffcd00;
+    --color-apron2: #1a1a1a;
+    --color-buttons: #1a1a1a;
+    --color-potatoes-plate: #1a1a1a;
+    --color-chai-cups: #1a1a1a;
+    --color-apron1-strap: #ffffff;
+    --color-apron2-strap: #ffffff;
+    --color-gloves: #ffffff;
+    --color-spoon: #ffffff;
+    --color-spatula: #ffffff;
+    --color-chai-plate: #ffffff;
+    --color-hibiscus: #ff6b6b;
+    --color-hummingbird-wing: #ff6b6b;
+    --color-hummingbird-body: #4ecdc4;
+    --color-butterfly2-wings: #4ecdc4;
+    --color-hummingbird-head: #45aaf2;
+    --color-hummingbird-decor1: #45aaf2;
+    --color-hummingbird-decor2: #45aaf2;
+    --color-neckerchief: #4ecdc4;
+  }
+
+  body, html {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    background-color: #ffffff;
+    font-family: var(--font-sans);
+    color: #1c1917;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, .font-editorial {
+    font-family: var(--font-serif);
+  }
+}
+
+/* Fullscreen Art Canvas */
+#art-canvas {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+#art-canvas svg {
+  width: 100%;
+  height: 100%;
+  max-width: 100vw;
+  max-height: 100vh;
+}
+
+/* Color swatch inputs matching original aesthetic */
+.color-picker {
+  width: 26px; 
+  height: 26px;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  background: transparent;
+  border-radius: 50%;
+  -webkit-appearance: none;
+  appearance: none;
+  outline: none !important; 
+  box-shadow: none !important;
+}
+
+.color-picker::-webkit-color-swatch-wrapper { padding: 0; }
+.color-picker::-webkit-color-swatch { border: 1.5px solid rgba(0, 0, 0, 0.2); border-radius: 50%; }
+.color-picker::-moz-color-swatch { border: 1.5px solid rgba(0, 0, 0, 0.2); border-radius: 50%; }
+.color-picker:hover { transform: scale(1.18); transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1); }
+
+/* SVG dynamic color bindings for The Generative Chef */
+#coat-col            { fill: var(--color-coat, #ffcd00); }
+#apron1-col          { fill: var(--color-apron1, #ffcd00); }
+#samosas-plate-col   { fill: var(--color-samosas-plate, #ffcd00); }
+#apron2-col          { fill: var(--color-apron2, #1a1a1a); }
+#buttons-col         { fill: var(--color-buttons, #1a1a1a); }
+#potatoes-plate-col  { fill: var(--color-potatoes-plate, #1a1a1a); }
+#chai-cups-col       { fill: var(--color-chai-cups, #1a1a1a); }
+#apron1-strap-col    { fill: var(--color-apron1-strap, #ffffff); }
+#apron2-strap-col    { fill: var(--color-apron2-strap, #ffffff); }
+#gloves-col          { fill: var(--color-gloves, #ffffff); }
+#spoon-col           { fill: var(--color-spoon, #ffffff); }
+#spatula-col         { fill: var(--color-spatula, #ffffff); }
+#chai-plate-col      { fill: var(--color-chai-plate, #ffffff); }
+#hibiscus-col        { fill: var(--color-hibiscus, #ff6b6b); }
+#hummingbird-wing-col     { fill: var(--color-hummingbird-wing, #ff6b6b); }
+#hummingbird-body-col     { fill: var(--color-hummingbird-body, #4ecdc4); }
+#butterfly2-wings-col     { fill: var(--color-butterfly2-wings, #4ecdc4); }
+#hummingbird-head-col     { fill: var(--color-hummingbird-head, #45aaf2); }
+#hummingbird-decor1-col   { fill: var(--color-hummingbird-decor1, #45aaf2); }
+#hummingbird-decor2-col   { fill: var(--color-hummingbird-decor2, #45aaf2); }
+#neckerchief-col          { fill: var(--color-neckerchief, #4ecdc4); }

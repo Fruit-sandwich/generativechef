@@ -1,0 +1,6 @@
+{
+  "name": "VCD Location Art Generator",
+  "description": "On-site generative art encounter for Virtue Classic Dish locations. Visitors generate approved variations of The Generative Chef and anchor permanent digital provenance records.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
