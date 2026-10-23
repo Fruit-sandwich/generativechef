@@ -23,9 +23,8 @@ import { TopLeftGlyph } from './components/TopLeftGlyph';
 import { FloatingInstrument } from './components/FloatingInstrument';
 import { ThumbControls } from './components/ThumbControls';
 import { CuratorialDrawer } from './components/CuratorialDrawer';
-import { OnSiteQRModal } from './components/OnSiteQRModal';
 import { RegistryMatrix } from './components/RegistryMatrix';
-import { QrCode, CheckCircle2, ExternalLink, MapPin } from 'lucide-react';
+import { CheckCircle2, ExternalLink, MapPin } from 'lucide-react';
 
 export default function App() {
   const [registry, setRegistry] = useState<CombinationRecord[]>([]);
@@ -43,7 +42,6 @@ export default function App() {
 
   // Modals
   const [isCuratorialOpen, setIsCuratorialOpen] = useState(false);
-  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const [isRegistryOpen, setIsRegistryOpen] = useState(false);
 
   const currentPalette = APPROVED_PALETTES[paletteIndex % APPROVED_PALETTES.length];
@@ -93,13 +91,13 @@ export default function App() {
     }));
   }, []);
 
-  // Live viewport rendered SVG
+  // Live viewport rendered SVG (clean edition caption only, no repeated VCD/CC0 in footer)
   const liveSvg = useMemo(() => {
     if (!currentCombination) return '';
     return buildRenderedSvg(
       currentCombination.traits,
       customColors,
-      `VCD UTAWALA • #${currentCombination.index + 1}/480 • CC0 PUBLIC DOMAIN`
+      `EDITION #${currentCombination.index + 1} / 480`
     );
   }, [currentCombination, customColors]);
 
@@ -119,7 +117,7 @@ export default function App() {
       const individualCleanSvg = buildCleanIndividualChefSvg(
         currentCombination.traits,
         customColors,
-        `VCD UTAWALA, NAIROBI • EDITION #${currentCombination.index + 1}/480 • CC0 PUBLIC DOMAIN`
+        `EDITION #${currentCombination.index + 1} / 480`
       );
 
       // 2. Export High-Res PNG (2100×2970)
@@ -159,7 +157,7 @@ export default function App() {
       });
 
       setToastData({
-        message: `Anchored Edition #${currentCombination.index + 1} SVG to Arweave (CC0 Public Domain)`,
+        message: `Anchored Edition #${currentCombination.index + 1} SVG to Arweave`,
         txId: archiveResult.txId,
       });
       setTimeout(() => setToastData(null), 6000);
@@ -193,9 +191,6 @@ export default function App() {
       } else if (e.key === 'i' || e.key === 'I') {
         e.preventDefault();
         setIsCuratorialOpen((prev) => !prev);
-      } else if (e.key === 'q' || e.key === 'Q') {
-        e.preventDefault();
-        setIsQrModalOpen((prev) => !prev);
       }
     };
 
@@ -234,22 +229,13 @@ export default function App() {
         currentPaletteName={currentPalette.name}
       />
 
-      {/* 5. Top-Right Discreet Venue & Legal Header */}
+      {/* 5. Top-Right Discreet Venue & Legal Header (Primary location of VCD x CC0) */}
       <header className="fixed top-6 right-6 z-40 flex items-center gap-3 text-xs font-sans text-stone-600">
         {/* Location Display */}
         <div className="flex items-center gap-1.5 bg-white/80 backdrop-blur-xs border border-stone-200 rounded-full py-1.5 px-3.5 text-xs font-medium text-stone-800 shadow-2xs">
           <MapPin className="w-3.5 h-3.5 text-stone-500" />
           <span>Virtue Classic Dish · Utawala</span>
         </div>
-
-        {/* Table QR Button */}
-        <button
-          onClick={() => setIsQrModalOpen(true)}
-          title="On-Site Table QR Code (Q)"
-          className="p-1.5 bg-white/80 hover:bg-white backdrop-blur-xs border border-stone-200 rounded-full shadow-2xs text-stone-700 hover:text-stone-900 transition-colors cursor-pointer"
-        >
-          <QrCode className="w-4 h-4" />
-        </button>
 
         {/* Public Domain Badge */}
         <button
@@ -261,21 +247,15 @@ export default function App() {
         </button>
       </header>
 
-      {/* 6. Minimal Bottom Curatorial Caption (Positioned unobtrusively on bottom-left) */}
+      {/* 6. Minimal Bottom-Left Image Number Badge (Only shows the image number) */}
       {currentCombination && (
         <div className="fixed bottom-6 left-6 z-40 text-left select-none">
           <button
             onClick={() => setIsCuratorialOpen(true)}
-            className="text-xs sm:text-sm font-editorial text-stone-600 hover:text-stone-900 transition-colors cursor-pointer bg-white/70 hover:bg-white/95 backdrop-blur-xs px-3.5 py-1.5 rounded-full border border-stone-200/70 shadow-2xs flex items-center gap-2"
+            title="View Curatorial Details & Provenance (I)"
+            className="font-mono text-xs font-semibold text-stone-800 bg-white/85 hover:bg-white backdrop-blur-xs px-2.5 py-1.5 rounded-full border border-stone-200/80 shadow-2xs cursor-pointer hover:border-stone-400 transition-colors tabular-nums"
           >
-            <span>The Generative Chef</span>
-            <span aria-hidden="true" className="text-stone-300">·</span>
-            <span className="font-mono text-stone-800 tabular-nums font-semibold">
-              #{currentCombination.index + 1}
-            </span>
-            <span className="text-stone-400 text-xs">of 480</span>
-            <span aria-hidden="true" className="text-stone-300">·</span>
-            <span className="text-xs text-stone-500">Utawala, Nairobi</span>
+            #{currentCombination.index + 1}
           </button>
         </div>
       )}
@@ -312,22 +292,11 @@ export default function App() {
           palette={currentPalette}
           customColors={customColors}
           campaign={CAMPAIGN_CONFIG}
-          onOpenQrModal={() => setIsQrModalOpen(true)}
           onOpenRegistry={() => setIsRegistryOpen(true)}
         />
       )}
 
-      {/* 9. On-Site Table QR Modal */}
-      <OnSiteQRModal
-        isOpen={isQrModalOpen}
-        onClose={() => setIsQrModalOpen(false)}
-        locations={VCD_LOCATIONS}
-        currentLocation={currentLocation}
-        onSelectLocation={() => {}}
-        campaign={CAMPAIGN_CONFIG}
-      />
-
-      {/* 10. 480 Registry Matrix Modal */}
+      {/* 9. 480 Registry Matrix Modal */}
       {isRegistryOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-900/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-xl max-w-4xl w-full p-6 shadow-2xl relative max-h-[85vh] overflow-y-auto">

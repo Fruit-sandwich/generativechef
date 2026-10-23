@@ -93,12 +93,24 @@ export async function archiveToPermaweb(params: {
   let isPermaweb = false;
 
   try {
-    const win = typeof window !== 'undefined' ? (window as unknown as { TurboFactory?: { unauthenticated: () => { uploadFile: (opts: unknown) => Promise<{ id: string }> } } }) : undefined;
-    if (win && win.TurboFactory) {
-      const turbo = win.TurboFactory.unauthenticated();
+    let TurboFactory: any = typeof window !== 'undefined' && (window as any).TurboFactory ? (window as any).TurboFactory : null;
+
+    if (!TurboFactory) {
+      try {
+        const mod: any = await import('@ardrive/turbo-sdk/web');
+        if (mod && mod.TurboFactory) {
+          TurboFactory = mod.TurboFactory;
+        }
+      } catch (importErr) {
+        console.info('Turbo SDK dynamic import notice:', importErr);
+      }
+    }
+
+    if (TurboFactory) {
+      const turbo: any = TurboFactory.unauthenticated();
       
       // Store as a single standalone SVG file directly
-      const file = new File([individualSvg], `Chef_Edition_${combination.index + 1}_Utawala.svg`, {
+      const file = new File([individualSvg], `TheGenerativeChef_Edition_${combination.index + 1}_Utawala.svg`, {
         type: 'image/svg+xml',
       });
 

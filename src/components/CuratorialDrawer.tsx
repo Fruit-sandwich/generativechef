@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { CombinationRecord, VCDLocation, ApprovedPalette, CampaignConfig } from '../types/campaign';
 import { downloadSvgFile, downloadJsonFile, exportHighResPng } from '../utils/svgRenderer';
-import { X, Copy, Check, Download, ExternalLink, Globe, Sparkles, QrCode } from 'lucide-react';
+import { X, Copy, Check, Download, ExternalLink, Globe, Sparkles } from 'lucide-react';
 
 interface CuratorialDrawerProps {
   isOpen: boolean;
@@ -12,7 +12,6 @@ interface CuratorialDrawerProps {
   palette: ApprovedPalette;
   customColors: Record<string, string>;
   campaign: CampaignConfig;
-  onOpenQrModal: () => void;
   onOpenRegistry: () => void;
 }
 
@@ -25,7 +24,6 @@ export const CuratorialDrawer: React.FC<CuratorialDrawerProps> = ({
   palette,
   customColors,
   campaign,
-  onOpenQrModal,
   onOpenRegistry,
 }) => {
   const [copied, setCopied] = useState(false);
@@ -162,19 +160,9 @@ export const CuratorialDrawer: React.FC<CuratorialDrawerProps> = ({
             <button
               onClick={() => {
                 onClose();
-                onOpenQrModal();
-              }}
-              className="flex items-center gap-1 text-xs text-stone-600 hover:text-stone-900 transition-colors"
-            >
-              <QrCode className="w-3.5 h-3.5" />
-              <span>Table QR</span>
-            </button>
-            <button
-              onClick={() => {
-                onClose();
                 onOpenRegistry();
               }}
-              className="text-xs text-stone-600 hover:text-stone-900 underline transition-colors"
+              className="text-xs text-stone-600 hover:text-stone-900 underline transition-colors cursor-pointer"
             >
               480 Registry
             </button>
