@@ -29,6 +29,7 @@ export interface CombinationRecord {
   claimedAt?: number;
   locationId?: string;
   txId?: string; // Arweave transaction or simulated bundle ID
+  storageFormat?: 'standalone-svg' | 'trait-json' | 'offline-sha256';
   paletteId?: string;
   paletteColors?: Record<string, string>;
 }
@@ -91,6 +92,7 @@ export interface ClaimReceipt {
   palette: ApprovedPalette;
   customColors: Record<string, string>;
   arweaveTxId: string;
+  storageFormat?: 'standalone-svg' | 'trait-json' | 'offline-sha256';
   contentHash: string;
   timestamp: string;
   archivalStatus: 'confirmed_permaweb' | 'local_cryptographic_anchor';

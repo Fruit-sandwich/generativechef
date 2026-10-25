@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { CombinationRecord, CombinationState, VCDLocation } from '../types/campaign';
-import { Search, Filter, ShieldCheck, Clock, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Search, Filter, ShieldCheck, Clock, CheckCircle2, ArrowRight, ExternalLink } from 'lucide-react';
 
 interface RegistryMatrixProps {
   registry: CombinationRecord[];
@@ -264,11 +264,38 @@ export const RegistryMatrix: React.FC<RegistryMatrixProps> = ({
                     </div>
                   )}
                   {selectedRecord.txId && (
-                    <div className="flex justify-between items-center pt-1">
-                      <span className="text-stone-500">Permanent Record:</span>
-                      <span className="font-mono text-[10px] text-stone-700 truncate max-w-[140px]">
-                        {selectedRecord.txId}
-                      </span>
+                    <div className="pt-2 mt-1 border-t border-stone-200/60 space-y-1">
+                      <div className="flex justify-between items-center">
+                        <span className="text-stone-500">Arweave Stamp:</span>
+                        <span className="font-mono text-[10px] text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200/60">
+                          {selectedRecord.storageFormat === 'trait-json'
+                            ? 'Trait JSON (~1.2 KiB)'
+                            : selectedRecord.storageFormat === 'offline-sha256'
+                            ? 'Offline SHA-256'
+                            : 'Standalone SVG'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 pt-0.5">
+                        <a
+                          href={`https://arweave.net/${selectedRecord.txId}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[11px] text-amber-800 hover:text-amber-950 font-medium underline flex items-center gap-0.5"
+                        >
+                          <span>Gateway</span>
+                          <ExternalLink className="w-2.5 h-2.5" />
+                        </a>
+                        <span className="text-stone-300">·</span>
+                        <a
+                          href={`https://viewblock.io/arweave/tx/${selectedRecord.txId}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[11px] text-stone-600 hover:text-stone-900 underline flex items-center gap-0.5"
+                        >
+                          <span>ViewBlock</span>
+                          <ExternalLink className="w-2.5 h-2.5" />
+                        </a>
+                      </div>
                     </div>
                   )}
                 </div>

@@ -18,13 +18,21 @@ import {
   exportHighResPng,
   downloadSvgFile,
 } from './utils/svgRenderer';
-import { archiveToPermaweb } from './services/arweaveArchive';
+import { stampToArweave, StampFormat } from './services/arweaveService';
 import { TopLeftGlyph } from './components/TopLeftGlyph';
 import { FloatingInstrument } from './components/FloatingInstrument';
 import { ThumbControls } from './components/ThumbControls';
 import { CuratorialDrawer } from './components/CuratorialDrawer';
 import { RegistryMatrix } from './components/RegistryMatrix';
-import { CheckCircle2, ExternalLink, MapPin } from 'lucide-react';
+import { CheckCircle2, ShieldCheck, ExternalLink, MapPin, X } from 'lucide-react';
+
+interface ToastData {
+  message: string;
+  txId?: string;
+  format?: StampFormat;
+  sizeBytes?: number;
+  status?: 'confirmed_permaweb' | 'local_cryptographic_anchor';
+}
 
 export default function App() {
   const [registry, setRegistry] = useState<CombinationRecord[]>([]);
@@ -37,8 +45,8 @@ export default function App() {
   });
 
   const [isRolling, setIsRolling] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
-  const [toastData, setToastData] = useState<{ message: string; txId?: string } | null>(null);
+  const [isStamping, setIsStamping] = useState(false);
+  const [toastData, setToastData] = useState<ToastData | null>(null);
 
   // Modals
   const [isCuratorialOpen, setIsCuratorialOpen] = useState(false);
@@ -107,13 +115,13 @@ export default function App() {
     return getActiveColorSlots(currentCombination.traits);
   }, [currentCombination]);
 
-  // Streamlined Export & Direct SVG Permaweb Archival via TurboSDK
-  const handleExportWorkflow = useCallback(async () => {
-    if (!currentCombination || isExporting) return;
-    setIsExporting(true);
+  // Streamlined Stamping & Permaweb Archival via TurboSDK (<100 KiB Free Tier)
+  const handleStampWorkflow = useCallback(async () => {
+    if (!currentCombination || isStamping) return;
+    setIsStamping(true);
 
     try {
-      // 1. Build an isolated individual chef SVG containing ONLY the traits that involve it!
+      // 1. Build an isolated clean individual chef SVG containing ONLY traits that involve it
       const individualCleanSvg = buildCleanIndividualChefSvg(
         currentCombination.traits,
         customColors,
@@ -128,8 +136,8 @@ export default function App() {
       const svgFilename = `Chef_Edition_${currentCombination.index + 1}_Utawala.svg`;
       downloadSvgFile(individualCleanSvg, svgFilename);
 
-      // 4. Anchor individual clean SVG directly to Arweave via TurboSDK
-      const archiveResult = await archiveToPermaweb({
+      // 4. Stamp directly to Arweave via Turbo SDK (<100 KiB Free Tier with Trait JSON efficiency fallback)
+      const stampResult = await stampToArweave({
         individualSvg: individualCleanSvg,
         combination: currentCombination,
         traits: currentCombination.traits,
@@ -139,38 +147,47 @@ export default function App() {
         campaignId: CAMPAIGN_CONFIG.id,
       });
 
-      // Update registry record as issued
+      // 5. Update local state & registry as issued with confirmed txId and storage format
+      const updatedRecord: CombinationRecord = {
+        ...currentCombination,
+        state: 'issued',
+        claimedAt: Date.now(),
+        locationId: currentLocation.id,
+        txId: stampResult.txId,
+        storageFormat: stampResult.format,
+      };
+
+      setCurrentCombination(updatedRecord);
+
       setRegistry((prev) => {
         const updated = prev.map((r) =>
-          r.index === currentCombination.index
-            ? {
-                ...r,
-                state: 'issued' as const,
-                claimedAt: Date.now(),
-                locationId: currentLocation.id,
-                txId: archiveResult.txId,
-              }
-            : r
+          r.index === currentCombination.index ? updatedRecord : r
         );
         saveRegistry(updated);
         return updated;
       });
 
       setToastData({
-        message: `Anchored Edition #${currentCombination.index + 1} SVG to Arweave`,
-        txId: archiveResult.txId,
+        message:
+          stampResult.status === 'confirmed_permaweb'
+            ? `Stamped Edition #${currentCombination.index + 1} to Arweave`
+            : `Edition #${currentCombination.index + 1} Anchored Locally`,
+        txId: stampResult.txId,
+        format: stampResult.format,
+        sizeBytes: stampResult.sizeBytes,
+        status: stampResult.status,
       });
-      setTimeout(() => setToastData(null), 6000);
+      setTimeout(() => setToastData(null), 9000);
     } catch (err) {
-      console.error('Export notice:', err);
+      console.error('Stamping notice:', err);
       setToastData({
-        message: 'Chef SVG & High-Res PNG exported locally',
+        message: 'Chef SVG & High-Res PNG downloaded locally',
       });
       setTimeout(() => setToastData(null), 4000);
     } finally {
-      setIsExporting(false);
+      setIsStamping(false);
     }
-  }, [currentCombination, currentLocation, currentPalette, customColors, isExporting]);
+  }, [currentCombination, currentLocation, currentPalette, customColors, isStamping]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -187,7 +204,7 @@ export default function App() {
         handleCyclePalette();
       } else if (e.key === 'd' || e.key === 'D') {
         e.preventDefault();
-        handleExportWorkflow();
+        handleStampWorkflow();
       } else if (e.key === 'i' || e.key === 'I') {
         e.preventDefault();
         setIsCuratorialOpen((prev) => !prev);
@@ -196,7 +213,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleRollNewVariation, handleCyclePalette, handleExportWorkflow]);
+  }, [handleRollNewVariation, handleCyclePalette, handleStampWorkflow]);
 
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-white select-none">
@@ -219,13 +236,13 @@ export default function App() {
         onColorChange={handleColorChange}
       />
 
-      {/* 4. Prominent Bottom-Right Thumb Controls (Roll, Cycle Palette, Export) */}
+      {/* 4. Prominent Bottom-Right Thumb Controls (Roll, Cycle Palette, Stamp) */}
       <ThumbControls
         onRoll={handleRollNewVariation}
         onCyclePalette={handleCyclePalette}
-        onExport={handleExportWorkflow}
+        onStamp={handleStampWorkflow}
         isRolling={isRolling}
-        isExporting={isExporting}
+        isStamping={isStamping}
         currentPaletteName={currentPalette.name}
       />
 
@@ -253,32 +270,77 @@ export default function App() {
           <button
             onClick={() => setIsCuratorialOpen(true)}
             title="View Curatorial Details & Provenance (I)"
-            className="font-mono text-xs font-semibold text-stone-800 bg-white/85 hover:bg-white backdrop-blur-xs px-2.5 py-1.5 rounded-full border border-stone-200/80 shadow-2xs cursor-pointer hover:border-stone-400 transition-colors tabular-nums"
+            className="font-mono text-xs font-semibold text-stone-800 bg-white/85 hover:bg-white backdrop-blur-xs px-2.5 py-1.5 rounded-full border border-stone-200/80 shadow-2xs cursor-pointer hover:border-stone-400 transition-colors tabular-nums flex items-center gap-1.5"
           >
-            #{currentCombination.index + 1}
+            {currentCombination.state === 'issued' && (
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" title="Stamped Edition" />
+            )}
+            <span>#{currentCombination.index + 1}</span>
           </button>
         </div>
       )}
 
-      {/* 7. Action Toast Notification with direct Arweave SVG link */}
+      {/* 7. Action Toast Notification with direct Arweave & Explorer links */}
       {toastData && (
-        <div className="fixed bottom-24 right-6 z-50 bg-stone-900/95 backdrop-blur-md text-white text-xs py-2.5 px-4 rounded-xl shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-200 max-w-sm">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-          <div className="flex-1 truncate">
-            <div>{toastData.message}</div>
+        <aside
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-24 right-4 sm:right-6 z-50 bg-stone-900/95 backdrop-blur-md text-white text-xs p-3.5 rounded-xl shadow-2xl flex items-start gap-3 animate-in fade-in slide-in-from-bottom-2 duration-200 max-w-sm border border-stone-800"
+        >
+          {toastData.status === 'confirmed_permaweb' ? (
+            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+          ) : (
+            <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+          )}
+
+          <div className="flex-1 space-y-1">
+            <div className="font-medium text-stone-100 flex items-center justify-between">
+              <span>{toastData.message}</span>
+              {toastData.format && (
+                <span className="text-[10px] font-mono px-1.5 py-0.5 bg-stone-800 text-stone-300 rounded ml-2">
+                  {toastData.format === 'trait-json'
+                    ? 'Trait JSON'
+                    : toastData.format === 'offline-sha256'
+                    ? 'SHA-256'
+                    : 'SVG'}
+                  {toastData.sizeBytes ? ` · ${(toastData.sizeBytes / 1024).toFixed(1)}k` : ''}
+                </span>
+              )}
+            </div>
+
             {toastData.txId && (
-              <a
-                href={`https://arweave.net/${toastData.txId}`}
-                target="_blank"
-                rel="noreferrer"
-                className="text-[11px] text-amber-300 hover:underline flex items-center gap-1 mt-0.5"
-              >
-                <span>View SVG on Arweave</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
+              <div className="flex items-center gap-3 pt-1 text-[11px]">
+                <a
+                  href={`https://arweave.net/${toastData.txId}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-amber-300 hover:text-amber-200 hover:underline flex items-center gap-1 font-medium"
+                >
+                  <span>Arweave Gateway</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+                <span className="text-stone-600">·</span>
+                <a
+                  href={`https://viewblock.io/arweave/tx/${toastData.txId}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-stone-300 hover:text-white hover:underline flex items-center gap-1"
+                >
+                  <span>ViewBlock</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
             )}
           </div>
-        </div>
+
+          <button
+            onClick={() => setToastData(null)}
+            className="text-stone-400 hover:text-stone-200 cursor-pointer p-0.5"
+            title="Dismiss"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </aside>
       )}
 
       {/* 8. Curatorial & Public Domain Drawer */}
@@ -293,6 +355,8 @@ export default function App() {
           customColors={customColors}
           campaign={CAMPAIGN_CONFIG}
           onOpenRegistry={() => setIsRegistryOpen(true)}
+          onStamp={handleStampWorkflow}
+          isStamping={isStamping}
         />
       )}
 
@@ -302,7 +366,7 @@ export default function App() {
           <div className="bg-white rounded-xl max-w-4xl w-full p-6 shadow-2xl relative max-h-[85vh] overflow-y-auto">
             <button
               onClick={() => setIsRegistryOpen(false)}
-              className="absolute top-4 right-4 text-stone-400 hover:text-stone-800 text-xs cursor-pointer"
+              className="absolute top-4 right-4 text-stone-400 hover:text-stone-800 text-xs cursor-pointer font-medium"
             >
               Close
             </button>

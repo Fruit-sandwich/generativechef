@@ -1,21 +1,21 @@
 import React from 'react';
-import { Sparkles, Palette, Download } from 'lucide-react';
+import { Sparkles, Palette, Stamp } from 'lucide-react';
 
 interface ThumbControlsProps {
   onRoll: () => void;
   onCyclePalette: () => void;
-  onExport: () => void;
+  onStamp: () => void;
   isRolling: boolean;
-  isExporting: boolean;
+  isStamping: boolean;
   currentPaletteName: string;
 }
 
 export const ThumbControls: React.FC<ThumbControlsProps> = ({
   onRoll,
   onCyclePalette,
-  onExport,
+  onStamp,
   isRolling,
-  isExporting,
+  isStamping,
   currentPaletteName,
 }) => {
   return (
@@ -32,21 +32,35 @@ export const ThumbControls: React.FC<ThumbControlsProps> = ({
         <Palette className="w-4 h-4 sm:w-5 sm:h-5 text-stone-700 group-hover:rotate-12 transition-transform duration-200" />
       </button>
 
-      {/* 2. Export & Anchor Button */}
+      {/* 2. Stamp Edition & Download Button */}
       <button
-        onClick={onExport}
-        disabled={isExporting}
-        title="Export SVG, High-Res PNG & Anchor to Arweave (D)"
-        className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/95 backdrop-blur-md border border-stone-200 text-stone-900 flex items-center justify-center hover:scale-108 active:scale-95 transition-all shadow-md cursor-pointer hover:border-stone-400 disabled:opacity-50 shrink-0"
+        onClick={onStamp}
+        disabled={isStamping}
+        title="Stamp Edition to Arweave & Download Vector SVG + High-Res PNG (D)"
+        className={`h-11 sm:h-12 px-3.5 sm:px-4 rounded-full bg-white/95 backdrop-blur-md border text-stone-900 flex items-center gap-2 transition-all shadow-md cursor-pointer disabled:opacity-60 shrink-0 ${
+          isStamping
+            ? 'border-amber-400 bg-amber-50/90 text-amber-900'
+            : 'border-stone-200 hover:border-stone-400 hover:scale-105 active:scale-95'
+        }`}
       >
-        {isExporting ? (
-          <span className="w-3.5 h-3.5 sm:w-4 sm:h-4 border-2 border-stone-400 border-t-stone-900 rounded-full animate-spin" />
+        {isStamping ? (
+          <>
+            <span className="w-3.5 h-3.5 sm:w-4 sm:h-4 border-2 border-amber-600 border-t-transparent rounded-full animate-spin shrink-0" />
+            <span className="text-xs font-semibold tracking-wide hidden sm:inline whitespace-nowrap">
+              Stamping...
+            </span>
+          </>
         ) : (
-          <Download className="w-4 h-4 sm:w-5 sm:h-5 text-stone-800" />
+          <>
+            <Stamp className="w-4 h-4 sm:w-5 sm:h-5 text-amber-700 shrink-0" />
+            <span className="text-xs font-semibold tracking-wide hidden xs:inline sm:inline whitespace-nowrap">
+              Stamp
+            </span>
+          </>
         )}
       </button>
 
-      {/* 3. Primary Prominent 'Roll New Permutation' Button */}
+      {/* 3. Primary Prominent 'Roll Permutation' Button */}
       <button
         onClick={onRoll}
         disabled={isRolling}
